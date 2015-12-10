@@ -16,11 +16,17 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.Set;
 import java.util.UUID;
 
@@ -38,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView textView;
     private Button button;
+    private Button button2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,15 +54,26 @@ public class MainActivity extends AppCompatActivity {
         textView = (TextView) findViewById(R.id.textView);
         button = (Button) findViewById(R.id.button);
 
+
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                System.out.println("clicked button1");
                 if (button.getText().equals("Start"))
                     button.setText("Stop");
                 else
                     button.setText("Start");
 
                 //TODO implement download logic
+            }
+        });
+
+        button2 = (Button) findViewById(R.id.button2);
+        button2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                System.out.println("clicked button2!");
+                new SendDataToServerTask().execute();
             }
         });
 
@@ -121,6 +139,31 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private class SendDataToServerTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            sendDataToServer("Hello World!");
+            return null;
+        }
+    }
+
+    private void sendDataToServer(String string) {
+
+        String host = "130.237.84.42";
+        int PORT_NUMBER = 1337;
+
+        Socket socket = null;
+        try {
+            socket = new Socket(host, PORT_NUMBER);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            out.write(string);
+            out.close();
+            System.out.println("Sent: " + string);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     /* Checks if external storage is available for read and write */
     public boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
