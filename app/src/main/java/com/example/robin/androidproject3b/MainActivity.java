@@ -12,13 +12,19 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
-    private UUID STANDARD_SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private final UUID STANDARD_SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+
+    private final byte ACK_BYTE = 0x06;
 
     private BluetoothAdapter adapter;
     private BluetoothDevice remote;
@@ -96,16 +102,55 @@ public class MainActivity extends AppCompatActivity {
             }
 
             // Retrieve the input and output streams from the socket
-            // Write the byte sequence representing the data format to the sensor (and flush the stream)
-            // Read one byte from the input stream
-            // If the reply equals ACK
-            //     Create a FileWriter using the external file path Write a date stamp to the first line of the file
-            //     While not interrupted
-            //         Read a packet
-            //         Extract the byte representing the pulse (or pleth) value from the byte array
-            //         Write the pleth data to the file
-            //         Display the pulse data
-            // Close the Bluetooth socket and the file writer (make sure this always happens)
+            InputStream in;
+            OutputStream out;
+
+            try {
+                in = socket.getInputStream();
+                out = socket.getOutputStream();
+
+                // Write the byte sequence representing the data format to the sensor (and flush the stream)
+                byte[] bytes = {0x02, 0x70, 0x04, 0x02, 0x02, 0x00, 0x78, 0x03};
+                out.write(bytes);
+                out.flush();
+
+                // Read one byte from the input stream
+                byte[] buffer = new byte[1024];
+                in.read(buffer);
+
+                // If the reply equals ACK
+                if (buffer[0] == ACK_BYTE) {
+                    // Create a FileWriter using the external file path Write a date stamp to the first line of the file
+//                    FileWriter fw = new FileWriter();
+
+                    // While not interrupted
+                    while (true) {
+                        try {
+                            // Read a packet
+                            in.read(buffer);
+
+                            // Extract the byte representing the pulse (or pleth) value from the byte array
+                            // TODO: Implement comment above
+
+                            // Write the pleth data to the file
+                            // TODO: Implement comment above
+
+                            // Display the pulse data
+                            // TODO: Implement comment above
+                        }
+                        catch (IOException e) {
+                            break;
+                        }
+                    }
+
+                    // Close the Bluetooth socket and the file writer (make sure this always happens)
+                    socket.close();
+//                    fw.close();
+                }
+            }
+            catch (IOException e) {
+                Log.i("Exception", "Couldn't get input and/or output streams.");
+            }
 
             return null;
         }
