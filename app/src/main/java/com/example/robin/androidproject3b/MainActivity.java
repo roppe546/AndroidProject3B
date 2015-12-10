@@ -3,20 +3,20 @@ package com.example.robin.androidproject3b;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.Intent;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.os.Environment;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 
@@ -74,6 +74,36 @@ public class MainActivity extends AppCompatActivity {
         // Start download task
         downloadDataTask = new DownloadDataTask();
         downloadDataTask.execute();
+
+        writeToFile("Test1");
+        writeToFile("Test2");
+        writeToFile("Test3");
+    }
+
+    private void writeToFile(String string) {
+
+        if(!isExternalStorageWritable())
+            System.err.println("isExternalStorageWritable: " + isExternalStorageWritable());
+
+        File root = Environment.getExternalStorageDirectory();
+        File file = new File(root.getAbsolutePath(), "myData.txt");
+        FileWriter fileWriter;
+        try {
+            fileWriter = new FileWriter(file, true);
+            fileWriter.append(string);
+            fileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /* Checks if external storage is available for read and write */
+    public boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -156,5 +186,3 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 }
-
-
