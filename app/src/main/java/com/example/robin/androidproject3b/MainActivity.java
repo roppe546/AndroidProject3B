@@ -16,17 +16,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.Inet4Address;
-import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 
@@ -95,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Start download task
         downloadDataTask = new DownloadDataTask();
-//        downloadDataTask.execute();
+        downloadDataTask.execute();
 
         writeToFile("Test1");
         writeToFile("Test2");
@@ -108,23 +105,6 @@ public class MainActivity extends AppCompatActivity {
         menuInflater.inflate(R.menu.menu, menu);
 
         return super.onCreateOptionsMenu(menu);
-    }
-
-    private void writeToFile(String string) {
-
-        if(!isExternalStorageWritable())
-            System.err.println("isExternalStorageWritable: " + isExternalStorageWritable());
-
-        File root = Environment.getExternalStorageDirectory();
-        File file = new File(root.getAbsolutePath(), "myData.txt");
-        FileWriter fileWriter;
-        try {
-            fileWriter = new FileWriter(file, true);
-            fileWriter.append(string);
-            fileWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -176,10 +156,13 @@ public class MainActivity extends AppCompatActivity {
     /**
      * This task downloads data from the sensor device.
      */
-    private class DownloadDataTask extends AsyncTask<Void, Void, Void> {
+    private class DownloadDataTask extends AsyncTask<Void, String, Void> {
+        private int previousPulse;
 
         @Override
         protected Void doInBackground(Void... params) {
+            previousPulse = 0;
+
             // Initialize the bluetoothSocket
             Set<BluetoothDevice> pairedDevices = adapter.getBondedDevices();
             Log.i("Pair", "Paired devices: " + pairedDevices.toString());
@@ -193,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
             // Get BluetoothSocket object
             try {
                 socket = remote.createRfcommSocketToServiceRecord(STANDARD_SPP_UUID);
+                socket.connect();
             }
             catch (IOException e) {
                 Log.i("Exception", "Couldn't create BluetoothSocket");
@@ -207,12 +191,12 @@ public class MainActivity extends AppCompatActivity {
                 out = socket.getOutputStream();
 
                 // Write the byte sequence representing the data format to the sensor (and flush the stream)
-                byte[] bytes = {0x02, 0x70, 0x04, 0x02, 0x02, 0x00, 0x78, 0x03};
+                byte[] bytes = {0x02, 0x70, 0x04, 0x02, 0x02, 0x00, (byte) 0x78, 0x03};
                 out.write(bytes);
                 out.flush();
 
                 // Read one byte from the input stream
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[5];
                 in.read(buffer);
 
                 // If the reply equals ACK
@@ -224,16 +208,34 @@ public class MainActivity extends AppCompatActivity {
                     while (true) {
                         try {
                             // Read a packet
+                            buffer = new byte[5];
                             in.read(buffer);
+
+                            // Discard frames where byte 0 != 1
+                            if (buffer[0] != 1) {
+                                continue;
+                            }
+
+                            // TEST CODE
+                            String test = Arrays.toString(buffer);
+//                            Log.i("BLYAT", "lenth : " + test);
 
                             // Extract the byte representing the pulse (or pleth) value from the byte array
                             // TODO: Implement comment above
+                            int pleth = buffer[2];
+                            int pulse = buffer[3];
+                            Log.i("BLYAT", "pleth = " + pleth + ", pulse = " + pulse);
 
                             // Write the pleth data to the file
                             // TODO: Implement comment above
+                            writeToFile(pleth + " " + pulse);
 
                             // Display the pulse data
                             // TODO: Implement comment above
+                            publishProgress("" + pulse);
+
+                            previousPulse = pulse;
+
                         }
                         catch (IOException e) {
                             break;
@@ -250,6 +252,30 @@ public class MainActivity extends AppCompatActivity {
             }
 
             return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+
+            textView.setText("Pulse: " + values[0]);
+        }
+    }
+
+    private void writeToFile(String string) {
+
+        if(!isExternalStorageWritable())
+            System.err.println("isExternalStorageWritable: " + isExternalStorageWritable());
+
+        File root = Environment.getExternalStorageDirectory();
+        File file = new File(root.getAbsolutePath(), "myData.txt");
+        FileWriter fileWriter;
+        try {
+            fileWriter = new FileWriter(file, true);
+            fileWriter.append(string);
+            fileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
