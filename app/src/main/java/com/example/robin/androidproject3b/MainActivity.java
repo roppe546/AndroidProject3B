@@ -3,11 +3,15 @@ package com.example.robin.androidproject3b;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -73,11 +77,19 @@ public class MainActivity extends AppCompatActivity {
 
         // Start download task
         downloadDataTask = new DownloadDataTask();
-        downloadDataTask.execute();
+//        downloadDataTask.execute();
 
         writeToFile("Test1");
         writeToFile("Test2");
         writeToFile("Test3");
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu, menu);
+
+        return super.onCreateOptionsMenu(menu);
     }
 
     private void writeToFile(String string) {
@@ -95,6 +107,18 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+
+        if (itemId == R.id.settingsButton) {
+            Log.i("ActionMenu", "Selected Settings in menu");
+            startActivityForResult(new Intent(this, SettingsActivity.class), 200);
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     /* Checks if external storage is available for read and write */

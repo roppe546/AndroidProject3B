@@ -1,0 +1,41 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditTextPreference
+        android:key="filename"
+        android:capitalize="words"
+        android:title="@string/pref_filename_title_display_name"
+        android:defaultValue="@string/pref_filename_default_display_name"
+        android:inputType="textCapWords"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true" />
+
+    <EditTextPreference
+        android:key="ipaddress"
+        android:capitalize="words"
+        android:title="@string/pref_ipaddress_title_display_name"
+        android:defaultValue="@string/pref_ipaddress_default_display_name"
+        android:inputType="textCapWords"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true" />
+
+    <EditTextPreference
+        android:key="portnumber"
+        android:capitalize="words"
+        android:title="@string/pref_portnumber_title_display_name"
+        android:defaultValue="@string/pref_portnumber_default_display_name"
+        android:inputType="textCapWords"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true" />
+
+
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="example_switch"
+        android:summary="@string/pref_description_test"
+        android:title="@string/pref_title_test" />
+
+
+</PreferenceScreen>

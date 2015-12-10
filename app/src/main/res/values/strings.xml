@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">Pulse and Oximeter</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Settings -->
+    <string name="settings">Settings</string>
+
+    <string name="pref_filename_title_display_name">Filename</string>
+    <string name="pref_filename_default_display_name">data.txt</string>
+
+    <string name="pref_ipaddress_title_display_name">IP Address</string>
+    <string name="pref_ipaddress_default_display_name">localhost</string>
+
+    <string name="pref_portnumber_title_display_name">Port number</string>
+    <string name="pref_portnumber_default_display_name">1337</string>
+
+    <string name="pref_title_test">Test title</string>
+    <string name="pref_description_test">Test description</string>
 </resources>
