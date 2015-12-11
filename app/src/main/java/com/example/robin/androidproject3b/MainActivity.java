@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
@@ -122,10 +123,15 @@ public class MainActivity extends AppCompatActivity {
         series2.setColor(Color.RED);
         graph.addSeries(series);
         graph.addSeries(series2);
-        graph.setTitle("Pulse graph");
+        graph.setTitle("Pulse and Pleth Graph");
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(0);
         graph.getViewport().setMaxX(100);
+
+        series.setTitle("Pulse");
+        series2.setTitle("Pleth");
+        graph.getLegendRenderer().setVisible(true);
+        graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
     }
 
     @Override
