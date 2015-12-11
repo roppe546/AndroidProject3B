@@ -93,10 +93,6 @@ public class MainActivity extends AppCompatActivity {
         // Start download task
         downloadDataTask = new DownloadDataTask();
         downloadDataTask.execute();
-
-        writeToFile("Test1");
-        writeToFile("Test2");
-        writeToFile("Test3");
     }
 
     @Override
@@ -117,6 +113,20 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (socket != null) {
+            try {
+                socket.close();
+            }
+            catch (IOException e) {
+
+            }
+        }
     }
 
     private class SendDataToServerTask extends AsyncTask<Void, Void, Void> {
@@ -157,12 +167,9 @@ public class MainActivity extends AppCompatActivity {
      * This task downloads data from the sensor device.
      */
     private class DownloadDataTask extends AsyncTask<Void, String, Void> {
-        private int previousPulse;
 
         @Override
         protected Void doInBackground(Void... params) {
-            previousPulse = 0;
-
             // Initialize the bluetoothSocket
             Set<BluetoothDevice> pairedDevices = adapter.getBondedDevices();
             Log.i("Pair", "Paired devices: " + pairedDevices.toString());
@@ -196,13 +203,15 @@ public class MainActivity extends AppCompatActivity {
                 out.flush();
 
                 // Read one byte from the input stream
-                byte[] buffer = new byte[5];
+                byte[] buffer = new byte[256];
                 in.read(buffer);
 
                 // If the reply equals ACK
                 if (buffer[0] == ACK_BYTE) {
                     // Create a FileWriter using the external file path Write a date stamp to the first line of the file
 //                    FileWriter fw = new FileWriter();
+
+                    int count = 0;
 
                     // While not interrupted
                     while (true) {
@@ -218,24 +227,27 @@ public class MainActivity extends AppCompatActivity {
 
                             // TEST CODE
                             String test = Arrays.toString(buffer);
-//                            Log.i("BLYAT", "lenth : " + test);
+                            Log.i("BLYAT", "arr: " + test);
 
                             // Extract the byte representing the pulse (or pleth) value from the byte array
                             // TODO: Implement comment above
+                            // Check if frame 1 (sync bit in status = 1)
+                            if ((buffer[1] & 0x01) == 1) {
+                                Log.i("BLYAT", "SYNC FRAME");
+                            }
+
+                            int status = buffer[1];
                             int pleth = buffer[2];
                             int pulse = buffer[3];
-                            Log.i("BLYAT", "pleth = " + pleth + ", pulse = " + pulse);
+//                            Log.i("BLYAT", "status = " + status + ", pleth = " + pleth + ", pulse = " + pulse);
 
                             // Write the pleth data to the file
                             // TODO: Implement comment above
-                            writeToFile(pleth + " " + pulse);
+                            writeToFile(pleth + " " + pulse + "\n");
 
                             // Display the pulse data
                             // TODO: Implement comment above
-                            publishProgress("" + pulse);
-
-                            previousPulse = pulse;
-
+                            publishProgress(pulse + "");
                         }
                         catch (IOException e) {
                             break;
