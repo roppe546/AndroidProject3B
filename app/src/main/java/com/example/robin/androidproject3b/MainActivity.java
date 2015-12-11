@@ -239,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 Log.i("DOWNLOAD", "pleth = " + pleth + ", pulse = " + pulse);
                                 writeToFile(pleth + " " + pulse + "\n");
-                                publishProgress(pulse + "");
+                                publishProgress(pulse + "", pleth + "");
 
                                 msb = 0;
                             }
@@ -264,7 +264,8 @@ public class MainActivity extends AppCompatActivity {
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
             series.appendData(new DataPoint(counter++, Double.valueOf(values[0])), true, 100);
-            textView.setText("Pulse: " + values[0]);
+            series2.appendData(new DataPoint(counter++, Double.valueOf(values[1])), true, 100);
+            textView.setText("Pulse: " + values[0] + "Pleth: " + values[1]);
         }
     }
 
