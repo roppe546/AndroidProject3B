@@ -108,9 +108,7 @@ public class MainActivity extends AppCompatActivity {
         GraphView graph = (GraphView) findViewById(R.id.graph);
         series = new LineGraphSeries<DataPoint>();
         graph.addSeries(series);
-        graph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(100);
+        graph.setTitle("Pulse graph");
     }
 
     @Override
