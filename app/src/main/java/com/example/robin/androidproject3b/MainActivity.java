@@ -199,13 +199,13 @@ public class MainActivity extends AppCompatActivity {
 
                             // Check if frame 1 (sync bit in status = 1)
                             if ((buffer[1] & 0x01) != 1) {
-                                Log.i("BLYAT", "SYNC FRAME");
+                                Log.i("DOWNLOAD", "SYNC FRAME");
                                 continue;
                             }
 
-                            int pleth = buffer[2];
-                            int pulse = buffer[3];
-                            Log.i("BLYAT", "pleth = " + pleth + ", pulse = " + pulse);
+                            int pleth = unsignedByteToInt(buffer[2]);
+                            int pulse = unsignedByteToInt(buffer[3]);
+                            Log.i("DOWNLOAD", "pleth = " + pleth + ", pulse = " + pulse);
 
                             // Write the pleth data to the file
                             writeToFile(pleth + " " + pulse + "\n");
