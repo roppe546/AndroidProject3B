@@ -4,9 +4,11 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -31,7 +33,6 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity {
 
     private final UUID STANDARD_SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-
     private final byte ACK_BYTE = 0x06;
 
     private BluetoothAdapter adapter;
@@ -44,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
     private Button button;
     private Button button2;
 
+    private SharedPreferences pref;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
         textView = (TextView) findViewById(R.id.textView);
         button = (Button) findViewById(R.id.button);
 
+        pref = PreferenceManager.getDefaultSharedPreferences(this);
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -170,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
                 out.flush();
 
                 // Read one byte from the input stream
-                byte[] buffer = new byte[256];
+                byte[] buffer = new byte[1];
                 in.read(buffer);
 
                 // If the reply equals ACK
@@ -249,7 +253,9 @@ public class MainActivity extends AppCompatActivity {
             System.err.println("isExternalStorageWritable: " + isExternalStorageWritable());
 
         File root = Environment.getExternalStorageDirectory();
-        File file = new File(root.getAbsolutePath(), "myData.txt");
+
+        String filename = pref.getString("filename", "myData.txt");
+        File file = new File(root.getAbsolutePath(), filename);
         FileWriter fileWriter;
         try {
             fileWriter = new FileWriter(file, true);
@@ -271,8 +277,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void sendDataToServer(String string) {
 
-        String host = "130.229.142.178";
-        int PORT_NUMBER = 1337;
+        String host = pref.getString("ipaddress", "localhost");
+        int PORT_NUMBER = Integer.parseInt(pref.getString("portnumber", "1337"));
 
         Socket socket = null;
         try {
