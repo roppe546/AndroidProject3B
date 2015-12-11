@@ -29,8 +29,15 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Pulse: -"
+            android:text="Pleth: -"
             android:id="@+id/textView"
+            android:layout_gravity="center_horizontal" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pulse: -"
+            android:id="@+id/textView2"
             android:layout_gravity="center_horizontal" />
 
         <Button

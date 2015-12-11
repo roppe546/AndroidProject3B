@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private DownloadDataTask downloadDataTask;
 
     private TextView textView;
+    private TextView textView2;
     private Button button;
     private Button button2;
 
@@ -66,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         textView = (TextView) findViewById(R.id.textView);
+        textView2 = (TextView) findViewById(R.id.textView2);
         pref = PreferenceManager.getDefaultSharedPreferences(this);
 
         button = (Button) findViewById(R.id.button);
@@ -83,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
                             remote = dev;
                         }
                     }
-
 
                     if(remote == null) {
                         Toast.makeText(getApplicationContext(), "No compatible sensor detected!", Toast.LENGTH_LONG).show();
@@ -115,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Log.i("Adapter", "Bluetooth adapter NOT found.");
         }
-
 
         GraphView graph = (GraphView) findViewById(R.id.graph);
         series = new LineGraphSeries<DataPoint>();
@@ -273,7 +273,8 @@ public class MainActivity extends AppCompatActivity {
             super.onProgressUpdate(values);
             series.appendData(new DataPoint(counter++, Double.valueOf(values[0])), true, 100);
             series2.appendData(new DataPoint(counter, Double.valueOf(values[1])), true, 100);
-            textView.setText("Pulse: " + values[0] + "Pleth: " + values[1]);
+            textView2.setText("Pleth: " + values[1]);
+            textView.setText("Pulse: " + values[0]);
         }
     }
 
