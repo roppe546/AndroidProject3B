@@ -214,16 +214,16 @@ public class MainActivity extends AppCompatActivity {
 
                             // Extract the byte representing the pulse (or pleth) value from the byte array
                             // TODO: Implement comment above
+                            if(loopCounter == 2) {
+                                Log.i("PULSE_LSB", "" + buffer[3]);
+                                publishProgress(buffer[3] + "");
+                            }
 
                             // Check if frame 1 (sync bit in status = 1)
                             if ((buffer[1] & 0x01) != 1) {
                                 loopCounter = 1;
                                 Log.i("DOWNLOAD", "SYNC FRAME");
                                 continue;
-                            }
-
-                            if(loopCounter == 2) {
-                                Log.i("PULSE_LSB", "" + buffer[3]);
                             }
 
                             Log.i("PLETH", "" + buffer[2]);
@@ -237,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
                             writeToFile(pleth + " " + pulse + "\n");
 
                             // Display the pulse data
-                            publishProgress(pulse + "");
+//                            publishProgress(pulse + "");
                         }
                         catch (IOException e) {
                             break;
