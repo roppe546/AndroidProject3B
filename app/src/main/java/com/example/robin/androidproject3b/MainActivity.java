@@ -49,6 +49,10 @@ public class MainActivity extends AppCompatActivity {
     private Button button;
     private Button button2;
 
+    private SharedPreferences pref;
+    private LineGraphSeries<DataPoint> series;
+    private int counter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
