@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
@@ -209,9 +210,7 @@ public class MainActivity extends AppCompatActivity {
                 // If the reply equals ACK
                 if (buffer[0] == ACK_BYTE) {
                     // Create a FileWriter using the external file path Write a date stamp to the first line of the file
-//                    FileWriter fw = new FileWriter();
-
-                    int count = 0;
+                    writeToFile(new Date().toString());
 
                     // While not interrupted
                     while (true) {
@@ -231,22 +230,21 @@ public class MainActivity extends AppCompatActivity {
 
                             // Extract the byte representing the pulse (or pleth) value from the byte array
                             // TODO: Implement comment above
+
                             // Check if frame 1 (sync bit in status = 1)
-                            if ((buffer[1] & 0x01) == 1) {
+                            if ((buffer[1] & 0x01) != 1) {
                                 Log.i("BLYAT", "SYNC FRAME");
+                                continue;
                             }
 
-                            int status = buffer[1];
                             int pleth = buffer[2];
                             int pulse = buffer[3];
-//                            Log.i("BLYAT", "status = " + status + ", pleth = " + pleth + ", pulse = " + pulse);
+                            Log.i("BLYAT", "pleth = " + pleth + ", pulse = " + pulse);
 
                             // Write the pleth data to the file
-                            // TODO: Implement comment above
                             writeToFile(pleth + " " + pulse + "\n");
 
                             // Display the pulse data
-                            // TODO: Implement comment above
                             publishProgress(pulse + "");
                         }
                         catch (IOException e) {
