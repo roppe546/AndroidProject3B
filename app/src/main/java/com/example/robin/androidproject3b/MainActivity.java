@@ -18,6 +18,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -44,8 +48,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView textView;
     private Button button;
     private Button button2;
-
-    private SharedPreferences pref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +100,11 @@ public class MainActivity extends AppCompatActivity {
         // Start download task
         downloadDataTask = new DownloadDataTask();
         downloadDataTask.execute();
+
+        GraphView graph = (GraphView) findViewById(R.id.graph);
+        DataPoint[] dataPoint = new DataPoint[3*100];
+        series = new LineGraphSeries<DataPoint>();
+        graph.addSeries(series);
     }
 
     @Override
@@ -238,6 +245,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
 
+            series.appendData(new DataPoint(counter++, Double.valueOf(values[0])), true, 100);
             textView.setText("Pulse: " + values[0]);
         }
     }
