@@ -30,12 +30,4 @@
         android:selectAllOnFocus="true"
         android:singleLine="true" />
 
-
-    <SwitchPreference
-        android:defaultValue="true"
-        android:key="example_switch"
-        android:summary="@string/pref_description_test"
-        android:title="@string/pref_title_test" />
-
-
 </PreferenceScreen>
