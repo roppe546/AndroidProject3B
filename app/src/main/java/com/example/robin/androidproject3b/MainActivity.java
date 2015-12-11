@@ -84,15 +84,15 @@ public class MainActivity extends AppCompatActivity {
                         for (BluetoothDevice dev : pairedDevices) {
                             remote = dev;
                         }
-                    }
 
-                    if(remote == null) {
+                        downloadDataTask = new DownloadDataTask();
+                        downloadDataTask.execute();
+                        button.setText("Stop");
+                    }
+                    else {
                         Toast.makeText(getApplicationContext(), "No compatible sensor detected!", Toast.LENGTH_LONG).show();
                         return;
                     }
-                    downloadDataTask = new DownloadDataTask();
-                    downloadDataTask.execute();
-                    button.setText("Stop");
                 } else {
                     downloadDataTask.cancel(true);
                     try {
@@ -137,8 +137,6 @@ public class MainActivity extends AppCompatActivity {
         series2.setTitle("Pleth");
         graph.getLegendRenderer().setVisible(true);
         graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
-
-//        button2.setVisibility(View.INVISIBLE);
     }
 
     @Override
