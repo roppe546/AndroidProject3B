@@ -195,6 +195,7 @@ public class MainActivity extends AppCompatActivity {
 
                     // While not interrupted
                     int loopCounter = 0;
+                    int msb = 0;
 
                     while (true) {
                         loopCounter++;
@@ -213,31 +214,34 @@ public class MainActivity extends AppCompatActivity {
                             Log.i("BLYAT", "arr: " + test);
 
                             // Extract the byte representing the pulse (or pleth) value from the byte array
-                            // TODO: Implement comment above
-                            if(loopCounter == 2) {
-                                Log.i("PULSE_LSB", "" + buffer[3]);
-                                publishProgress(buffer[3] + "");
-                            }
-
-                            // Check if frame 1 (sync bit in status = 1)
-                            if ((buffer[1] & 0x01) != 1) {
-                                loopCounter = 1;
-                                Log.i("DOWNLOAD", "SYNC FRAME");
-                                continue;
-                            }
-
+                            int pleth;
+                            int pulse;
                             Log.i("PLETH", "" + buffer[2]);
                             Log.i("PULSE", "" + buffer[3]);
 
-                            int pleth = unsignedByteToInt(buffer[2]);
-                            int pulse = unsignedByteToInt(buffer[3]);
-                            Log.i("DOWNLOAD", "pleth = " + pleth + ", pulse = " + pulse);
+                            // Check if frame 1 (sync bit in status = 1)
+                            if ((buffer[1] & 0x01) == 1) {
+                                Log.i("DOWNLOAD", "SYNC FRAME");
+                                loopCounter = 1;
 
-                            // Write the pleth data to the file
-                            writeToFile(pleth + " " + pulse + "\n");
+                                msb = unsignedByteToInt(buffer[3]);
 
-                            // Display the pulse data
-//                            publishProgress(pulse + "");
+                                continue;
+                            }
+                            else if (loopCounter == 2) {
+                                pleth = unsignedByteToInt(buffer[2]);
+                                pulse = unsignedByteToInt(buffer[3]);
+
+                                if (msb == 1) {
+                                    pulse += 128;
+                                }
+
+                                Log.i("DOWNLOAD", "pleth = " + pleth + ", pulse = " + pulse);
+                                writeToFile(pleth + " " + pulse + "\n");
+                                publishProgress(pulse + "");
+
+                                msb = 0;
+                            }
                         }
                         catch (IOException e) {
                             break;
