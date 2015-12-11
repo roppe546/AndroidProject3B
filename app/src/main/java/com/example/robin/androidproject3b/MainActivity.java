@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         graph.addSeries(series);
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(40);
+        graph.getViewport().setMaxX(100);
     }
 
     @Override
