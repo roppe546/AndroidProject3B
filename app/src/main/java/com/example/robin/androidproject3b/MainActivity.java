@@ -130,40 +130,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class SendDataToServerTask extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            sendDataToServer("Hello World!");
-            return null;
-        }
-    }
-
-    private void sendDataToServer(String string) {
-
-        String host = "130.237.84.42";
-        int PORT_NUMBER = 1337;
-
-        Socket socket = null;
-        try {
-            socket = new Socket(host, PORT_NUMBER);
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            out.write(string);
-            out.close();
-            System.out.println("Sent: " + string);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    /* Checks if external storage is available for read and write */
-    public boolean isExternalStorageWritable() {
-        String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state)) {
-            return true;
-        }
-        return false;
-    }
-
     /**
      * This task downloads data from the sensor device.
      */
@@ -272,6 +238,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     *
+     *
+     * @param string
+     */
     private void writeToFile(String string) {
 
         if(!isExternalStorageWritable())
@@ -287,5 +258,50 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private class SendDataToServerTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            sendDataToServer("Hello World!");
+            return null;
+        }
+    }
+
+    private void sendDataToServer(String string) {
+
+        String host = "130.229.142.178";
+        int PORT_NUMBER = 1337;
+
+        Socket socket = null;
+        try {
+            socket = new Socket(host, PORT_NUMBER);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            out.write(string);
+            out.close();
+            System.out.println("Sent: " + string);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /* Checks if external storage is available for read and write */
+    public boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Convert an signed integer to an unsigned integer.
+     *
+     * @param b byte holding the integer
+     * @return  an unsigned integer
+     */
+    private int unsignedByteToInt(byte b) {
+        return (int) b & 0xFF;
     }
 }
