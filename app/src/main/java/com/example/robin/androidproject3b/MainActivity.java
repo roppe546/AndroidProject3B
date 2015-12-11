@@ -106,9 +106,11 @@ public class MainActivity extends AppCompatActivity {
         downloadDataTask.execute();
 
         GraphView graph = (GraphView) findViewById(R.id.graph);
-        DataPoint[] dataPoint = new DataPoint[3*100];
         series = new LineGraphSeries<DataPoint>();
         graph.addSeries(series);
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setMinX(0);
+        graph.getViewport().setMaxX(100);
     }
 
     @Override
