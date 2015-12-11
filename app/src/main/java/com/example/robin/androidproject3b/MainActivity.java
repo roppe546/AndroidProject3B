@@ -95,6 +95,11 @@ public class MainActivity extends AppCompatActivity {
                     button.setText("Stop");
                 } else {
                     downloadDataTask.cancel(true);
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     new SendDataToServerTask().execute();
                     button.setText("Start");
                 }
@@ -132,6 +137,8 @@ public class MainActivity extends AppCompatActivity {
         series2.setTitle("Pleth");
         graph.getLegendRenderer().setVisible(true);
         graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+
+//        button2.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -179,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
                 socket = remote.createRfcommSocketToServiceRecord(STANDARD_SPP_UUID);
                 socket.connect();
             } catch (IOException e) {
+                e.printStackTrace();
                 Log.i("Exception", "Couldn't create BluetoothSocket");
             }
 
@@ -202,7 +210,8 @@ public class MainActivity extends AppCompatActivity {
                 // If the reply equals ACK
                 if (buffer[0] == ACK_BYTE) {
                     // Create a FileWriter using the external file path Write a date stamp to the first line of the file
-                    writeToFile(new Date().toString());
+                    writeToFile(new Date().toString() + "\n");
+                    writeToFile("Pleth Pulse\n");
 
                     int loopCounter = 0;
                     int msb = 0;
@@ -264,7 +273,6 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 Log.i("Exception", "Couldn't get input and/or output streams.");
             }
-
             return null;
         }
 
