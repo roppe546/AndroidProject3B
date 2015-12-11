@@ -17,12 +17,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,8 +55,8 @@ public class MainActivity extends AppCompatActivity {
 
     private SharedPreferences pref;
     private LineGraphSeries<DataPoint> series;
+    private LineGraphSeries<DataPoint> series2;
     private int counter = 100;
-    GraphView graph;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,23 +64,37 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         textView = (TextView) findViewById(R.id.textView);
-        button = (Button) findViewById(R.id.button);
-
         pref = PreferenceManager.getDefaultSharedPreferences(this);
 
+        button = (Button) findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                System.out.println("clicked button1");
                 if (button.getText().equals("Start")) {
+
+                    // Initialize the bluetoothSocket
+                    Set<BluetoothDevice> pairedDevices = adapter.getBondedDevices();
+                    Log.i("Pair", "Paired devices: " + pairedDevices.toString());
+
+                    if (pairedDevices.size() == 1) {
+                        for (BluetoothDevice dev : pairedDevices) {
+                            remote = dev;
+                        }
+                    }
+
+
+                    if(remote == null) {
+                        Toast.makeText(getApplicationContext(), "No compatible sensor detected!", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    downloadDataTask = new DownloadDataTask();
                     downloadDataTask.execute();
                     button.setText("Stop");
                 } else {
                     downloadDataTask.cancel(true);
+                    new SendDataToServerTask().execute();
                     button.setText("Start");
                 }
-
-                //TODO implement download logic
             }
         });
 
@@ -89,7 +107,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Bluetooth stuff
         adapter = BluetoothAdapter.getDefaultAdapter();
         if (adapter != null) {
             Log.i("Adapter", "Bluetooth adapter found.");
@@ -97,20 +114,12 @@ public class MainActivity extends AppCompatActivity {
             Log.i("Adapter", "Bluetooth adapter NOT found.");
         }
 
-        // TODO: This code should/could probably be elsewhere
-        // TODO: Is this needed?
-        // If adapter is disabled, try to enable it
-//        if (adapter.isEnabled() == false) {
-//            Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-//            startActivityForResult(intent, REQUEST_ENABLE_BT);
-//        }
-
-        // Start download task
-        downloadDataTask = new DownloadDataTask();
 
         GraphView graph = (GraphView) findViewById(R.id.graph);
         series = new LineGraphSeries<DataPoint>();
+        series2 = new LineGraphSeries<DataPoint>();
         graph.addSeries(series);
+        graph.addSeries(series2);
         graph.setTitle("Pulse graph");
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(0);
@@ -121,7 +130,6 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.menu, menu);
-
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -133,7 +141,6 @@ public class MainActivity extends AppCompatActivity {
             Log.i("ActionMenu", "Selected Settings in menu");
             startActivityForResult(new Intent(this, SettingsActivity.class), 200);
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -157,15 +164,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... params) {
-            // Initialize the bluetoothSocket
-            Set<BluetoothDevice> pairedDevices = adapter.getBondedDevices();
-            Log.i("Pair", "Paired devices: " + pairedDevices.toString());
 
-            if (pairedDevices.size() == 1) {
-                for (BluetoothDevice dev : pairedDevices) {
-                    remote = dev;
-                }
-            }
 
             // Get BluetoothSocket object
             try {
@@ -197,12 +196,10 @@ public class MainActivity extends AppCompatActivity {
                     // Create a FileWriter using the external file path Write a date stamp to the first line of the file
                     writeToFile(new Date().toString());
 
-                    // While not interrupted
                     int loopCounter = 0;
                     int msb = 0;
 
                     while (true) {
-
                         if (isCancelled())
                             break;
 
@@ -216,10 +213,6 @@ public class MainActivity extends AppCompatActivity {
                             if (buffer[0] != 1) {
                                 continue;
                             }
-
-                            // TEST CODE
-                            String test = Arrays.toString(buffer);
-                            Log.i("BLYAT", "arr: " + test);
 
                             // Extract the byte representing the pulse (or pleth) value from the byte array
                             int pleth;
@@ -297,11 +290,43 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class SendDataToServerTask extends AsyncTask<Void, Void, Void> {
+    private String readFromFile() {
+
+        if (!isExternalStorageWritable())
+            System.err.println("isExternalStorageWritable: " + isExternalStorageWritable());
+
+        File root = Environment.getExternalStorageDirectory();
+
+        String filename = pref.getString("filename", "myData.txt");
+        File file = new File(root.getAbsolutePath(), filename);
+
+        StringBuilder sb = new StringBuilder();
+        BufferedReader br = null;
+
+        try {
+
+            String currentLine;
+            br = new BufferedReader(new FileReader(file));
+
+            while ((currentLine = br.readLine()) != null) {
+                sb.append(currentLine + "\n");
+            }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return sb.toString();
+    }
+
+        private class SendDataToServerTask extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected Void doInBackground(Void... params) {
-            sendDataToServer("Hello World!");
+            String data = readFromFile();
+            sendDataToServer(data);
             return null;
         }
     }
