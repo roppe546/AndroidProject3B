@@ -51,7 +51,8 @@ public class MainActivity extends AppCompatActivity {
 
     private SharedPreferences pref;
     private LineGraphSeries<DataPoint> series;
-    private int counter;
+    private int counter = 100;
+    GraphView graph;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,10 +68,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 System.out.println("clicked button1");
-                if (button.getText().equals("Start"))
+                if (button.getText().equals("Start")) {
+                    downloadDataTask.execute();
                     button.setText("Stop");
-                else
+                } else {
+                    downloadDataTask.cancel(true);
                     button.setText("Start");
+                }
 
                 //TODO implement download logic
             }
@@ -103,9 +107,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Start download task
         downloadDataTask = new DownloadDataTask();
-        downloadDataTask.execute();
 
-        GraphView graph = (GraphView) findViewById(R.id.graph);
+        graph = (GraphView) findViewById(R.id.graph);
         series = new LineGraphSeries<DataPoint>();
         graph.addSeries(series);
         graph.setTitle("Pulse graph");
@@ -138,8 +141,7 @@ public class MainActivity extends AppCompatActivity {
         if (socket != null) {
             try {
                 socket.close();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
 
             }
         }
@@ -166,8 +168,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 socket = remote.createRfcommSocketToServiceRecord(STANDARD_SPP_UUID);
                 socket.connect();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 Log.i("Exception", "Couldn't create BluetoothSocket");
             }
 
@@ -197,6 +198,10 @@ public class MainActivity extends AppCompatActivity {
                     int loopCounter = 0;
 
                     while (true) {
+
+                        if (isCancelled())
+                            break;
+
                         loopCounter++;
                         try {
                             // Read a packet
@@ -214,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
 
                             // Extract the byte representing the pulse (or pleth) value from the byte array
                             // TODO: Implement comment above
-                            if(loopCounter == 2) {
+                            if (loopCounter == 2) {
                                 Log.i("PULSE_LSB", "" + buffer[3]);
                                 publishProgress(buffer[3] + "");
                             }
@@ -238,8 +243,7 @@ public class MainActivity extends AppCompatActivity {
 
                             // Display the pulse data
 //                            publishProgress(pulse + "");
-                        }
-                        catch (IOException e) {
+                        } catch (IOException e) {
                             break;
                         }
                     }
@@ -248,8 +252,7 @@ public class MainActivity extends AppCompatActivity {
                     socket.close();
 //                    fw.close();
                 }
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 Log.i("Exception", "Couldn't get input and/or output streams.");
             }
 
@@ -259,20 +262,17 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
-
             series.appendData(new DataPoint(counter++, Double.valueOf(values[0])), true, 100);
             textView.setText("Pulse: " + values[0]);
         }
     }
 
     /**
-     *
-     *
      * @param string
      */
     private void writeToFile(String string) {
 
-        if(!isExternalStorageWritable())
+        if (!isExternalStorageWritable())
             System.err.println("isExternalStorageWritable: " + isExternalStorageWritable());
 
         File root = Environment.getExternalStorageDirectory();
@@ -328,7 +328,7 @@ public class MainActivity extends AppCompatActivity {
      * Convert an signed integer to an unsigned integer.
      *
      * @param b byte holding the integer
-     * @return  an unsigned integer
+     * @return an unsigned integer
      */
     private int unsignedByteToInt(byte b) {
         return (int) b & 0xFF;
