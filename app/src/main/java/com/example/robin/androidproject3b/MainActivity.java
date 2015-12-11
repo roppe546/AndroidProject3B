@@ -194,7 +194,10 @@ public class MainActivity extends AppCompatActivity {
                     writeToFile(new Date().toString());
 
                     // While not interrupted
+                    int loopCounter = 0;
+
                     while (true) {
+                        loopCounter++;
                         try {
                             // Read a packet
                             buffer = new byte[5];
@@ -214,9 +217,17 @@ public class MainActivity extends AppCompatActivity {
 
                             // Check if frame 1 (sync bit in status = 1)
                             if ((buffer[1] & 0x01) != 1) {
+                                loopCounter = 1;
                                 Log.i("DOWNLOAD", "SYNC FRAME");
                                 continue;
                             }
+
+                            if(loopCounter == 2) {
+                                Log.i("PULSE_LSB", "" + buffer[3]);
+                            }
+
+                            Log.i("PLETH", "" + buffer[2]);
+                            Log.i("PULSE", "" + buffer[3]);
 
                             int pleth = unsignedByteToInt(buffer[2]);
                             int pulse = unsignedByteToInt(buffer[3]);
