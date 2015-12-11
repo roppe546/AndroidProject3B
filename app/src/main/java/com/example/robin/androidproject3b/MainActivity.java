@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences pref;
     private LineGraphSeries<DataPoint> series;
     private LineGraphSeries<DataPoint> series2;
-    private int counter = 100;
+    private int counter = 50;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -274,13 +274,15 @@ public class MainActivity extends AppCompatActivity {
             super.onProgressUpdate(values);
             series.appendData(new DataPoint(counter++, Double.valueOf(values[0])), true, 50);
             series2.appendData(new DataPoint(counter, Double.valueOf(values[1])), true, 50);
-            textView2.setText("Pleth: " + values[1]);
+
             textView.setText("Pulse: " + values[0]);
+            textView2.setText("Pleth: " + values[1]);
         }
     }
 
     /**
-     * @param string
+     * Writes a given String to file.
+     * @param string to write to file.
      */
     private void writeToFile(String string) {
 

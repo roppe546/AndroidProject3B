@@ -30,4 +30,9 @@
         android:selectAllOnFocus="true"
         android:singleLine="true" />
 
+    <Preference
+        android:enabled="false"
+        android:title="@string/copyright"/>
+
+
 </PreferenceScreen>

@@ -16,4 +16,6 @@
 
     <string name="pref_title_test">Test title</string>
     <string name="pref_description_test">Test description</string>
+
+    <string name="copyright">© 2015 Peonsson and roppe546</string>
 </resources>
