@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -118,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
         GraphView graph = (GraphView) findViewById(R.id.graph);
         series = new LineGraphSeries<DataPoint>();
         series2 = new LineGraphSeries<DataPoint>();
+        series2.setColor(Color.RED);
         graph.addSeries(series);
         graph.addSeries(series2);
         graph.setTitle("Pulse graph");
@@ -264,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
             series.appendData(new DataPoint(counter++, Double.valueOf(values[0])), true, 100);
-            series2.appendData(new DataPoint(counter++, Double.valueOf(values[1])), true, 100);
+            series2.appendData(new DataPoint(counter, Double.valueOf(values[1])), true, 100);
             textView.setText("Pulse: " + values[0] + "Pleth: " + values[1]);
         }
     }
