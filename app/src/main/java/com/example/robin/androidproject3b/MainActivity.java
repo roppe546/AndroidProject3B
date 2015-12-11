@@ -35,7 +35,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
@@ -88,8 +87,7 @@ public class MainActivity extends AppCompatActivity {
                         downloadDataTask = new DownloadDataTask();
                         downloadDataTask.execute();
                         button.setText("Stop");
-                    }
-                    else {
+                    } else {
                         Toast.makeText(getApplicationContext(), "No compatible sensor detected!", Toast.LENGTH_LONG).show();
                         return;
                     }
@@ -110,7 +108,6 @@ public class MainActivity extends AppCompatActivity {
         button2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                System.out.println("clicked button2!");
                 new SendDataToServerTask().execute();
             }
         });
@@ -131,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
         graph.setTitle("Pulse and Pleth Graph");
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(100);
+        graph.getViewport().setMaxX(50);
 
         series.setTitle("Pulse");
         series2.setTitle("Pleth");
@@ -243,8 +240,7 @@ public class MainActivity extends AppCompatActivity {
                                 msb = unsignedByteToInt(buffer[3]);
 
                                 continue;
-                            }
-                            else if (loopCounter == 2) {
+                            } else if (loopCounter == 2) {
                                 pleth = unsignedByteToInt(buffer[2]);
                                 pulse = unsignedByteToInt(buffer[3]);
 
@@ -258,8 +254,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 msb = 0;
                             }
-                        }
-                        catch (IOException e) {
+                        } catch (IOException e) {
                             break;
                         }
                     }
@@ -277,8 +272,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
-            series.appendData(new DataPoint(counter++, Double.valueOf(values[0])), true, 100);
-            series2.appendData(new DataPoint(counter, Double.valueOf(values[1])), true, 100);
+            series.appendData(new DataPoint(counter++, Double.valueOf(values[0])), true, 50);
+            series2.appendData(new DataPoint(counter, Double.valueOf(values[1])), true, 50);
             textView2.setText("Pleth: " + values[1]);
             textView.setText("Pulse: " + values[0]);
         }
@@ -337,30 +332,41 @@ public class MainActivity extends AppCompatActivity {
         return sb.toString();
     }
 
-        private class SendDataToServerTask extends AsyncTask<Void, Void, Void> {
+    private class SendDataToServerTask extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected Void doInBackground(Void... params) {
             String data = readFromFile();
-            sendDataToServer(data);
+            try {
+                sendDataToServer(data);
+            } catch (Exception e) {
+                this.cancel(true);
+            }
             return null;
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            Toast.makeText(getApplicationContext(), "Unable to send data to server. Make sure server IP and port number are correct.", Toast.LENGTH_LONG).show();
         }
     }
 
-    private void sendDataToServer(String string) {
+    private void sendDataToServer(String string) throws Exception {
 
         String host = pref.getString("ipaddress", "localhost");
         int PORT_NUMBER = Integer.parseInt(pref.getString("portnumber", "1337"));
 
         Socket socket = null;
+        PrintWriter out = null;
         try {
             socket = new Socket(host, PORT_NUMBER);
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            out = new PrintWriter(socket.getOutputStream(), true);
             out.write(string);
-            out.close();
             System.out.println("Sent: " + string);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } finally {
+            if (out != null)
+                out.close();
         }
     }
 
