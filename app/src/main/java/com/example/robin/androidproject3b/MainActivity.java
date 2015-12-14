@@ -17,10 +17,12 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.LegendRenderer;
 
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
@@ -39,10 +41,6 @@ public class MainActivity extends AppCompatActivity {
 
     private SharedPreferences pref;
     private MainActivity mainActivity;
-//    private PulsePlethMonitor ppm;
-//    private LineGraphSeries<DataPoint> series;
-//    private LineGraphSeries<DataPoint> series2;
-//    private int counter = 50;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,11 +49,12 @@ public class MainActivity extends AppCompatActivity {
 
         graph = (GraphView) findViewById(R.id.graph);
         graph.setTitle("Pulse and Pleth Graph");
-        graph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(50);
         graph.getLegendRenderer().setVisible(true);
         graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+
+        NumberFormat nf = NumberFormat.getInstance();
+        nf.setMaximumFractionDigits(0);
+        graph.getGridLabelRenderer().setLabelFormatter(new DefaultLabelFormatter(nf, nf));
 
         pulseText = (TextView) findViewById(R.id.pulseText);
         plethText = (TextView) findViewById(R.id.plethText);

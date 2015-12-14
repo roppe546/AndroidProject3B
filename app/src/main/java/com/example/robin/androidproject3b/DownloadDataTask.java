@@ -50,6 +50,12 @@ public class DownloadDataTask extends AsyncTask<Void, String, Void> {
         series.setTitle("Pulse");
         series2.setTitle("Pleth");
         series2.setColor(Color.RED);
+
+//        Random rand = new Random();
+//
+//        for (int i = 0; i < 1000; i++) {
+//            series.appendData(new DataPoint((double) 1/3*i, rand.nextInt((80 - 55) + 1) + 55), true, 100001);
+//        }
     }
 
     @Override
