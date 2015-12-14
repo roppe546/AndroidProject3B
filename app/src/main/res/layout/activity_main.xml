@@ -30,14 +30,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Pleth: -"
-            android:id="@+id/textView"
+            android:id="@+id/plethText"
             android:layout_gravity="center_horizontal" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Pulse: -"
-            android:id="@+id/textView2"
+            android:id="@+id/pulseText"
             android:layout_gravity="center_horizontal" />
 
         <Button
