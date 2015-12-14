@@ -155,6 +155,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+
+        downloadDataTask.cancel(true);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
 
