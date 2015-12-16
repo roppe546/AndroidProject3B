@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +21,9 @@ import android.widget.Toast;
 import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.LegendRenderer;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.DataPointInterface;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.io.IOException;
 import java.text.NumberFormat;
@@ -51,6 +55,12 @@ public class MainActivity extends AppCompatActivity {
         graph.setTitle("Pulse and Pleth Graph");
         graph.getLegendRenderer().setVisible(true);
         graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+        graph.getViewport().setYAxisBoundsManual(true);
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setMinY(0);
+        graph.getViewport().setMaxY(200);
+        graph.getViewport().setMinX(0);
+        graph.getViewport().setMaxX(50);
 
         NumberFormat nf = NumberFormat.getInstance();
         nf.setMaximumFractionDigits(0);
@@ -58,16 +68,12 @@ public class MainActivity extends AppCompatActivity {
 
         pulseText = (TextView) findViewById(R.id.pulseText);
         plethText = (TextView) findViewById(R.id.plethText);
+
         mainActivity = this;
         pref = PreferenceManager.getDefaultSharedPreferences(this);
 
-        downloadDataTask = new DownloadDataTask(mainActivity, remote);
+//        downloadDataTask = new DownloadDataTask(mainActivity, remote);
         serverWriter = new ServerWriter(this);
-
-        if (downloadDataTask != null) {
-            graph.addSeries(downloadDataTask.getSeries());
-            graph.addSeries(downloadDataTask.getSeries2());
-        }
 
         button = (Button) findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
@@ -75,36 +81,25 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (button.getText().equals("Start")) {
 
-                    // Initialize the bluetoothSocket
                     Set<BluetoothDevice> pairedDevices = adapter.getBondedDevices();
                     Log.i("Pair", "Paired devices: " + pairedDevices.toString());
-
                     if (pairedDevices.size() == 1) {
                         for (BluetoothDevice dev : pairedDevices) {
                             remote = dev;
                         }
-
-                        if (downloadDataTask != null) {
-                            downloadDataTask = new DownloadDataTask(mainActivity, remote);
-                        }
-
-                        downloadDataTask.execute();
-                        button.setText("Stop");
-                    } else {
-                        Toast.makeText(getApplicationContext(), "No compatible sensor detected!", Toast.LENGTH_LONG).show();
-                        return;
                     }
+
+                    downloadDataTask = new DownloadDataTask(mainActivity);
+                    graph.removeAllSeries();
+                    graph.addSeries(downloadDataTask.getSeries());
+                    graph.addSeries(downloadDataTask.getSeries2());
+
+                    downloadDataTask.execute();
+                    button.setText("Stop");
                 } else {
                     downloadDataTask.cancel(true);
-                    try {
-                        socket.close();
-                    } catch (IOException e) {
-                    }
-                    catch (NullPointerException e) {
-                    }
-
-//                    serverWriter.execute();
-                    new ServerWriter(mainActivity).execute();
+//                    downloadDataTask.closeSocket();
+//                    new ServerWriter(mainActivity).execute();
                     button.setText("Start");
                 }
             }
@@ -125,19 +120,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Log.i("Adapter", "Bluetooth adapter NOT found.");
         }
-
-
-//        series = new LineGraphSeries<DataPoint>();
-//        series2 = new LineGraphSeries<DataPoint>();
-//        series2.setColor(Color.RED);
-
-//        graph.addSeries(series);
-//        graph.addSeries(series2);
-
-
-//        series.setTitle("Pulse");
-//        series2.setTitle("Pleth");
-
     }
 
     @Override
@@ -181,5 +163,9 @@ public class MainActivity extends AppCompatActivity {
     public void updateUI(String pulse, String pleth) {
         pulseText.setText("Pulse: " + pulse);
         plethText.setText("Pleth: " + pleth);
+    }
+
+    public BluetoothDevice getRemote() {
+        return remote;
     }
 }

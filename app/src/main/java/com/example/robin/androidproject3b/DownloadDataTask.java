@@ -34,28 +34,22 @@ public class DownloadDataTask extends AsyncTask<Void, String, Void> {
     private MainActivity activity;
     private SharedPreferences pref;
 
-    private int counter = 50;
+    private double counter = 0;
     private LineGraphSeries<DataPoint> series;
     private LineGraphSeries<DataPoint> series2;
 
-    public DownloadDataTask(MainActivity activity, BluetoothDevice remote) {
+    public DownloadDataTask(MainActivity activity) {
         this.ppm = new PulsePlethMonitor();
-        this.remote = remote;
         this.activity = activity;
         this.pref = PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext());
 
+        this.remote = activity.getRemote();
+
         series = new LineGraphSeries<>();
         series2 = new LineGraphSeries<>();
-
         series.setTitle("Pulse");
         series2.setTitle("Pleth");
         series2.setColor(Color.RED);
-
-//        Random rand = new Random();
-//
-//        for (int i = 0; i < 1000; i++) {
-//            series.appendData(new DataPoint((double) 1/3*i, rand.nextInt((80 - 55) + 1) + 55), true, 100001);
-//        }
     }
 
     @Override
@@ -137,12 +131,13 @@ public class DownloadDataTask extends AsyncTask<Void, String, Void> {
                             ppm.setMsb(0);
                         }
                     } catch (IOException e) {
+                        e.printStackTrace();
                         break;
                     }
                 }
 
                 // Close the Bluetooth socket and the file writer (make sure this always happens)
-                socket.close();
+//                socket.close();
 //                    fw.close();
             }
         } catch (IOException e) {
@@ -154,13 +149,28 @@ public class DownloadDataTask extends AsyncTask<Void, String, Void> {
     @Override
     protected void onProgressUpdate(String... values) {
         super.onProgressUpdate(values);
-        series.appendData(new DataPoint(counter++, Double.valueOf(values[0])), true, 50);
-        series2.appendData(new DataPoint(counter, Double.valueOf(values[1])), true, 50);
 
-        activity.updateUI(values[0], values[1]);
+        System.out.println("got here");
 
-//        pulseText.setText("Pulse: " + values[0]);
-//        plethText.setText("Pleth: " + values[1]);
+        counter = counter + (double) 1/3;
+        Log.i("pulse2", "" + values[1]);
+        Log.i("pleth2", "" + values[0]);
+        Log.i("counter", "" + counter);
+
+        series.appendData(new DataPoint(counter, Double.valueOf(values[1])), false, 10001);
+        series2.appendData(new DataPoint(counter, Double.valueOf(values[0])), false, 10001);
+
+        activity.updateUI(values[1], values[0]);
+    }
+
+    @Override
+    protected void onCancelled() {
+        super.onCancelled();
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -211,5 +221,13 @@ public class DownloadDataTask extends AsyncTask<Void, String, Void> {
 
     public LineGraphSeries<DataPoint> getSeries2() {
         return series2;
+    }
+
+    public void closeSocket() {
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
