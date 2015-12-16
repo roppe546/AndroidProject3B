@@ -8,7 +8,6 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
@@ -24,7 +23,7 @@ import java.util.UUID;
 /**
  * This task downloads data from the sensor device.
  */
-public class DownloadDataTask extends AsyncTask<Void, String, Boolean> {
+public class DownloadDataTask extends AsyncTask<Void, String, Void> {
     private final UUID STANDARD_SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private final byte ACK_BYTE = 0x06;
 
@@ -38,6 +37,9 @@ public class DownloadDataTask extends AsyncTask<Void, String, Boolean> {
     private double counter = 0;
     private LineGraphSeries<DataPoint> series;
     private LineGraphSeries<DataPoint> series2;
+
+    private InputStream in;
+    private OutputStream out;
 
     public DownloadDataTask(MainActivity activity, BluetoothDevice remote) {
         this.ppm = new PulsePlethMonitor();
@@ -57,7 +59,7 @@ public class DownloadDataTask extends AsyncTask<Void, String, Boolean> {
     }
 
     @Override
-    protected Boolean doInBackground(Void... params) {
+    protected Void doInBackground(Void... params) {
         // Get BluetoothSocket object
         try {
             if (socket == null) {
@@ -71,9 +73,6 @@ public class DownloadDataTask extends AsyncTask<Void, String, Boolean> {
         }
 
         // Retrieve the input and output streams from the socket
-        InputStream in;
-        OutputStream out;
-
         try {
             in = socket.getInputStream();
             out = socket.getOutputStream();
@@ -84,14 +83,14 @@ public class DownloadDataTask extends AsyncTask<Void, String, Boolean> {
             out.flush();
 
             // Read one byte from the input stream
-            byte[] buffer = new byte[5];
-            in.read(buffer);
+            byte[] first = new byte[1];
+            in.read(first);
 
             Log.i("SensorHandshake", "Expecting ACK byte");
-            Log.i("SensorHandshake", "Received byte: " + buffer[0]);
+            Log.i("SensorHandshake", "Received byte: " + first[0]);
 
             // If the reply equals ACK
-            if (buffer[0] == ACK_BYTE) {
+            if (first[0] == ACK_BYTE) {
                 Log.i("SensorHandshake", "ACK BYTE WAS RECEIVED");
                 // Create a FileWriter using the external file path Write a date stamp to the first line of the file
                 writeToFile(new Date().toString() + "\n");
@@ -99,14 +98,11 @@ public class DownloadDataTask extends AsyncTask<Void, String, Boolean> {
 
                 int loopCounter = 0;
 
-                while (true) {
-                    if (isCancelled())
-                        break;
-
+                while (!isCancelled()) {
                     loopCounter++;
                     try {
                         // Read a packet
-                        buffer = new byte[5];
+                        byte[] buffer = new byte[5];
                         in.read(buffer);
 
                         // Discard frames where byte 0 != 1
@@ -142,24 +138,20 @@ public class DownloadDataTask extends AsyncTask<Void, String, Boolean> {
                             ppm.setMsb(0);
                         }
                     } catch (IOException e) {
-                        e.printStackTrace();
                         break;
                     }
                 }
 
-                // Close the Bluetooth socket and the file writer (make sure this always happens)
-                socket.close();
             }
-            else {
-                Log.i("SensorHandshake", "DIDN'T RECEIVE EXPECTED ACK BYTE");
-                return new Boolean(false);
-            }
+
+            // Close the Bluetooth socket and the file writer (make sure this always happens)
+            resetConnection();
         }
         catch (IOException e) {
             Log.i("Exception", "Couldn't get input and/or output streams.");
-            return new Boolean(false);
         }
-        return new Boolean(true);
+
+        return null;
     }
 
     @Override
@@ -173,19 +165,10 @@ public class DownloadDataTask extends AsyncTask<Void, String, Boolean> {
         Log.i("pleth2", "" + values[0]);
         Log.i("counter", "" + counter);
 
-        series.appendData(new DataPoint(counter, Double.valueOf(values[1])), false, 10001);
-        series2.appendData(new DataPoint(counter, Double.valueOf(values[0])), false, 10001);
+        series.appendData(new DataPoint(counter, Double.valueOf(values[1])), true, 10001);
+        series2.appendData(new DataPoint(counter, Double.valueOf(values[0])), true, 10001);
 
         activity.updateUI(values[1], values[0]);
-    }
-
-    @Override
-    protected void onPostExecute(Boolean success) {
-        super.onPostExecute(success);
-
-        if (!success) {
-            activity.updateUIDownloadFailed();
-        }
     }
 
     /**
@@ -238,11 +221,43 @@ public class DownloadDataTask extends AsyncTask<Void, String, Boolean> {
         return series2;
     }
 
+    public BluetoothSocket getSocket() {
+        return this.socket;
+    }
+
     public void closeSocket() {
         try {
-            socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+            this.socket.close();
+        }
+        catch (IOException e) {
+            Log.i("Socket", "Socket couldn't be closed because it was null.");
+        }
+    }
+
+    private void resetConnection() {
+        Log.i("RESET", "RESETTING");
+        if (in != null) {
+            try {
+                in.close();
+            }
+            catch (Exception e) {}
+            in = null;
+        }
+
+        if (out != null) {
+            try {
+                out.close();
+            }
+            catch (Exception e) {}
+            out = null;
+        }
+
+        if (socket != null) {
+            try {
+                socket.close();
+            }
+            catch (Exception e) {}
+            socket = null;
         }
     }
 }

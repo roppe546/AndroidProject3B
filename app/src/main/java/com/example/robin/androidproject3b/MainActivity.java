@@ -2,7 +2,6 @@ package com.example.robin.androidproject3b;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -21,14 +20,12 @@ import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.LegendRenderer;
 
-import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     private BluetoothAdapter adapter;
     private BluetoothDevice remote;
-    private BluetoothSocket socket;
 
     private DownloadDataTask downloadDataTask;
     private ServerWriter serverWriter;
@@ -98,8 +95,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 } else {
                     downloadDataTask.cancel(true);
-//                    downloadDataTask.closeSocket();
-//                    new ServerWriter(mainActivity).execute();
                     button.setText("Start");
                 }
             }
@@ -151,23 +146,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        if (socket != null) {
-            try {
-                socket.close();
-            } catch (IOException e) {
-
-            }
+        if (downloadDataTask.getSocket() != null) {
+            downloadDataTask.closeSocket();
         }
     }
 
     public void updateUI(String pulse, String pleth) {
         pulseText.setText("Pulse: " + pulse);
         plethText.setText("Pleth: " + pleth);
-    }
-
-    public void updateUIDownloadFailed() {
-        button.setText("Start");
-        Toast.makeText(getApplicationContext(), "Couldn't download data! Please try again.", Toast.LENGTH_LONG).show();
     }
 
     public BluetoothDevice getRemote() {
