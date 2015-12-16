@@ -72,7 +72,6 @@ public class MainActivity extends AppCompatActivity {
         mainActivity = this;
         pref = PreferenceManager.getDefaultSharedPreferences(this);
 
-//        downloadDataTask = new DownloadDataTask(mainActivity, remote);
         serverWriter = new ServerWriter(this);
 
         button = (Button) findViewById(R.id.button);
@@ -80,22 +79,27 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (button.getText().equals("Start")) {
-
                     Set<BluetoothDevice> pairedDevices = adapter.getBondedDevices();
                     Log.i("Pair", "Paired devices: " + pairedDevices.toString());
+
                     if (pairedDevices.size() == 1) {
                         for (BluetoothDevice dev : pairedDevices) {
                             remote = dev;
                         }
+
+                        downloadDataTask = new DownloadDataTask(mainActivity, remote);
+
+                        graph.removeAllSeries();
+                        graph.addSeries(downloadDataTask.getSeries());
+                        graph.addSeries(downloadDataTask.getSeries2());
+
+                        downloadDataTask.execute();
+
+                        button.setText("Stop");
+                    } else {
+                        Toast.makeText(getApplicationContext(), "No compatible sensor detected!", Toast.LENGTH_LONG).show();
+                        return;
                     }
-
-                    downloadDataTask = new DownloadDataTask(mainActivity);
-                    graph.removeAllSeries();
-                    graph.addSeries(downloadDataTask.getSeries());
-                    graph.addSeries(downloadDataTask.getSeries2());
-
-                    downloadDataTask.execute();
-                    button.setText("Stop");
                 } else {
                     downloadDataTask.cancel(true);
 //                    downloadDataTask.closeSocket();

@@ -38,7 +38,7 @@ public class DownloadDataTask extends AsyncTask<Void, String, Void> {
     private LineGraphSeries<DataPoint> series;
     private LineGraphSeries<DataPoint> series2;
 
-    public DownloadDataTask(MainActivity activity) {
+    public DownloadDataTask(MainActivity activity, BluetoothDevice remote) {
         this.ppm = new PulsePlethMonitor();
         this.activity = activity;
         this.pref = PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext());
@@ -50,15 +50,21 @@ public class DownloadDataTask extends AsyncTask<Void, String, Void> {
         series.setTitle("Pulse");
         series2.setTitle("Pleth");
         series2.setColor(Color.RED);
+
+        this.socket = null;
+        this.remote = remote;
     }
 
     @Override
     protected Void doInBackground(Void... params) {
         // Get BluetoothSocket object
         try {
-            socket = remote.createRfcommSocketToServiceRecord(STANDARD_SPP_UUID);
+            if (socket == null) {
+                socket = remote.createRfcommSocketToServiceRecord(STANDARD_SPP_UUID);
+            }
             socket.connect();
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
             Log.i("Exception", "Couldn't create BluetoothSocket");
         }
@@ -137,11 +143,16 @@ public class DownloadDataTask extends AsyncTask<Void, String, Void> {
                 }
 
                 // Close the Bluetooth socket and the file writer (make sure this always happens)
-//                socket.close();
 //                    fw.close();
             }
-        } catch (IOException e) {
+
+            socket.close();
+        }
+        catch (IOException e) {
             Log.i("Exception", "Couldn't get input and/or output streams.");
+        }
+        catch (Exception e) {
+            e.printStackTrace();
         }
         return null;
     }
@@ -161,16 +172,6 @@ public class DownloadDataTask extends AsyncTask<Void, String, Void> {
         series2.appendData(new DataPoint(counter, Double.valueOf(values[0])), false, 10001);
 
         activity.updateUI(values[1], values[0]);
-    }
-
-    @Override
-    protected void onCancelled() {
-        super.onCancelled();
-        try {
-            socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
