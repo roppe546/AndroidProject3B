@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
@@ -21,9 +20,6 @@ import android.widget.Toast;
 import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.LegendRenderer;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.DataPointInterface;
-import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.io.IOException;
 import java.text.NumberFormat;
@@ -167,6 +163,11 @@ public class MainActivity extends AppCompatActivity {
     public void updateUI(String pulse, String pleth) {
         pulseText.setText("Pulse: " + pulse);
         plethText.setText("Pleth: " + pleth);
+    }
+
+    public void updateUIDownloadFailed() {
+        button.setText("Start");
+        Toast.makeText(getApplicationContext(), "Couldn't download data! Please try again.", Toast.LENGTH_LONG).show();
     }
 
     public BluetoothDevice getRemote() {

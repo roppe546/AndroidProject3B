@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
@@ -23,7 +24,7 @@ import java.util.UUID;
 /**
  * This task downloads data from the sensor device.
  */
-public class DownloadDataTask extends AsyncTask<Void, String, Void> {
+public class DownloadDataTask extends AsyncTask<Void, String, Boolean> {
     private final UUID STANDARD_SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private final byte ACK_BYTE = 0x06;
 
@@ -56,7 +57,7 @@ public class DownloadDataTask extends AsyncTask<Void, String, Void> {
     }
 
     @Override
-    protected Void doInBackground(Void... params) {
+    protected Boolean doInBackground(Void... params) {
         // Get BluetoothSocket object
         try {
             if (socket == null) {
@@ -83,11 +84,15 @@ public class DownloadDataTask extends AsyncTask<Void, String, Void> {
             out.flush();
 
             // Read one byte from the input stream
-            byte[] buffer = new byte[1];
+            byte[] buffer = new byte[5];
             in.read(buffer);
+
+            Log.i("SensorHandshake", "Expecting ACK byte");
+            Log.i("SensorHandshake", "Received byte: " + buffer[0]);
 
             // If the reply equals ACK
             if (buffer[0] == ACK_BYTE) {
+                Log.i("SensorHandshake", "ACK BYTE WAS RECEIVED");
                 // Create a FileWriter using the external file path Write a date stamp to the first line of the file
                 writeToFile(new Date().toString() + "\n");
                 writeToFile("Pleth Pulse\n");
@@ -143,18 +148,18 @@ public class DownloadDataTask extends AsyncTask<Void, String, Void> {
                 }
 
                 // Close the Bluetooth socket and the file writer (make sure this always happens)
-//                    fw.close();
+                socket.close();
             }
-
-            socket.close();
+            else {
+                Log.i("SensorHandshake", "DIDN'T RECEIVE EXPECTED ACK BYTE");
+                return new Boolean(false);
+            }
         }
         catch (IOException e) {
             Log.i("Exception", "Couldn't get input and/or output streams.");
+            return new Boolean(false);
         }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+        return new Boolean(true);
     }
 
     @Override
@@ -172,6 +177,15 @@ public class DownloadDataTask extends AsyncTask<Void, String, Void> {
         series2.appendData(new DataPoint(counter, Double.valueOf(values[0])), false, 10001);
 
         activity.updateUI(values[1], values[0]);
+    }
+
+    @Override
+    protected void onPostExecute(Boolean success) {
+        super.onPostExecute(success);
+
+        if (!success) {
+            activity.updateUIDownloadFailed();
+        }
     }
 
     /**
